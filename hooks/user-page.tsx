@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -9,7 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Lightbulb, Plus, Edit, Trash2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Lightbulb, Plus, Edit, Trash2, FileText } from 'lucide-react'
 
 function Header() {
   return (
@@ -46,7 +49,7 @@ function Footer() {
   )
 }
 
-function IdeaCard({ idea, onEdit, onDelete }) {
+function IdeaCard({ idea, onEdit, onDelete, onAttachLicense }) {
   return (
     <Card>
       <CardHeader>
@@ -65,11 +68,22 @@ function IdeaCard({ idea, onEdit, onDelete }) {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">{idea.longDescription}</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           {idea.tags.map((tag, index) => (
             <Badge key={index} variant="secondary">{tag}</Badge>
           ))}
         </div>
+        {idea.license ? (
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-green-500">License Attached: {idea.license}</span>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => onAttachLicense(idea.id)}>
+            <FileText className="mr-2 h-4 w-4" />
+            Attach License
+          </Button>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <span className="text-sm text-muted-foreground">License Price: ${idea.price}</span>
@@ -79,23 +93,25 @@ function IdeaCard({ idea, onEdit, onDelete }) {
   )
 }
 
-function AddIdeaDialog({ isOpen, onClose, onSubmit }) {
-  const [newIdea, setNewIdea] = useState({
-    title: '',
-    shortDescription: '',
-    longDescription: '',
-    tags: '',
-    price: '',
-  })
+function AddIdeaDialog({ isOpen, onClose, onSubmit, editingIdea }) {
+  const [newIdea, setNewIdea] = useState(
+    editingIdea || {
+      title: '',
+      shortDescription: '',
+      longDescription: '',
+      tags: '',
+      price: '',
+    }
+  )
 
   const handleSubmit = (e) => {
     e.preventDefault()
     onSubmit({
       ...newIdea,
-      tags: newIdea.tags.split(',').map(tag => tag.trim()),
+      tags: typeof newIdea.tags === 'string' ? newIdea.tags.split(',').map(tag => tag.trim()) : newIdea.tags,
       price: parseFloat(newIdea.price),
-      id: Date.now(),
-      listedDate: new Date().toLocaleDateString()
+      id: editingIdea ? editingIdea.id : Date.now(),
+      listedDate: editingIdea ? editingIdea.listedDate : new Date().toLocaleDateString()
     })
     onClose()
   }
@@ -104,9 +120,9 @@ function AddIdeaDialog({ isOpen, onClose, onSubmit }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Idea</DialogTitle>
+          <DialogTitle>{editingIdea ? 'Edit Idea' : 'Add New Idea'}</DialogTitle>
           <DialogDescription>
-            List your innovative idea on the blockchain. Fill out the details below.
+            {editingIdea ? 'Update your idea details.' : 'List your innovative idea on the blockchain. Fill out the details below.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -150,7 +166,7 @@ function AddIdeaDialog({ isOpen, onClose, onSubmit }) {
               </Label>
               <Input
                 id="tags"
-                value={newIdea.tags}
+                value={typeof newIdea.tags === 'string' ? newIdea.tags : newIdea.tags.join(', ')}
                 onChange={(e) => setNewIdea({ ...newIdea, tags: e.target.value })}
                 placeholder="Separate tags with commas"
                 className="col-span-3"
@@ -170,7 +186,53 @@ function AddIdeaDialog({ isOpen, onClose, onSubmit }) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">List Idea</Button>
+            <Button type="submit">{editingIdea ? 'Update Idea' : 'List Idea'}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function AttachLicenseDialog({ isOpen, onClose, onAttach }) {
+  const [selectedLicense, setSelectedLicense] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onAttach(selectedLicense)
+    onClose()
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Attach License</DialogTitle>
+          <DialogDescription>
+            Choose a license to attach to your idea. This will define how others can use your idea.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="license" className="text-right">
+                License Type
+              </Label>
+              <Select onValueChange={setSelectedLicense} value={selectedLicense}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a license" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MIT">MIT License</SelectItem>
+                  <SelectItem value="Apache-2.0">Apache License 2.0</SelectItem>
+                  <SelectItem value="GPL-3.0">GNU General Public License v3.0</SelectItem>
+                  <SelectItem value="CC-BY-4.0">Creative Commons Attribution 4.0</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={!selectedLicense}>Attach License</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -187,7 +249,8 @@ function UserDashboard() {
       longDescription: "A blockchain-based system for fair and transparent content moderation on social media platforms.",
       tags: ["Blockchain", "Social Media", "Moderation"],
       price: 299.99,
-      listedDate: "2023-05-15"
+      listedDate: "2023-05-15",
+      license: "MIT"
     },
     {
       id: 2,
@@ -201,7 +264,9 @@ function UserDashboard() {
   ])
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isAttachLicenseDialogOpen, setIsAttachLicenseDialogOpen] = useState(false)
   const [editingIdea, setEditingIdea] = useState(null)
+  const [currentIdeaId, setCurrentIdeaId] = useState(null)
 
   const handleAddIdea = (newIdea) => {
     setIdeas([...ideas, newIdea])
@@ -219,6 +284,17 @@ function UserDashboard() {
 
   const handleDeleteIdea = (id) => {
     setIdeas(ideas.filter(idea => idea.id !== id))
+  }
+
+  const handleAttachLicense = (id) => {
+    setCurrentIdeaId(id)
+    setIsAttachLicenseDialogOpen(true)
+  }
+
+  const attachLicense = (license) => {
+    setIdeas(ideas.map(idea =>
+      idea.id === currentIdeaId ? { ...idea, license } : idea
+    ))
   }
 
   return (
@@ -243,6 +319,7 @@ function UserDashboard() {
                 idea={idea}
                 onEdit={handleEditIdea}
                 onDelete={handleDeleteIdea}
+                onAttachLicense={handleAttachLicense}
               />
             ))}
           </div>
@@ -269,7 +346,8 @@ function UserDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">Avg. License Price</p>
-                  <p className="text-2xl font-bold">${(ideas.reduce((sum, idea) => sum + idea.price, 0) / ideas.length).toFixed(2)}</p>
+                  <p className="text-2xl font-bold">${(ideas.reduce((sum,
+                    idea) => sum + idea.price, 0) / ideas.length).toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -283,6 +361,12 @@ function UserDashboard() {
           setEditingIdea(null)
         }}
         onSubmit={editingIdea ? handleUpdateIdea : handleAddIdea}
+        editingIdea={editingIdea}
+      />
+      <AttachLicenseDialog
+        isOpen={isAttachLicenseDialogOpen}
+        onClose={() => setIsAttachLicenseDialogOpen(false)}
+        onAttach={attachLicense}
       />
     </div>
   )
