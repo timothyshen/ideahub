@@ -1,4 +1,4 @@
-import IdeaHubPage from "@/components/IdeaHub";
+import IdeaHubPage from "@/components/layout/IdeaHubLayout";
 
 export default function Home() {
   return (
