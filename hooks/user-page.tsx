@@ -13,41 +13,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Lightbulb, Plus, Edit, Trash2, FileText } from 'lucide-react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
-function Header() {
-  return (
-    <header className="bg-primary text-primary-foreground py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-6">
-          <Link href="/" className="text-2xl font-bold">Idea Hub</Link>
-          <nav>
-            <ul className="flex space-x-4">
-              <li><Link href="/explore" className="hover:underline">Explore</Link></li>
-              <li><Link href="/about" className="hover:underline">About</Link></li>
-              <li><Link href="/contact" className="hover:underline">Contact</Link></li>
-            </ul>
-          </nav>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm">Connected: 0x1234...5678</span>
-          <Button variant="secondary" size="sm">Disconnect</Button>
-        </div>
-      </div>
-    </header>
-  )
-}
-
-function Footer() {
-  const currentYear = new Date().getFullYear()
-  return (
-    <footer className="bg-primary text-primary-foreground py-4 mt-8">
-      <div className="container mx-auto px-4 text-center">
-        <p>&copy; {currentYear} Idea Hub. All rights reserved.</p>
-        <p className="mt-2 text-sm">Powered by Story Protocol</p>
-      </div>
-    </footer>
-  )
-}
 
 function IdeaCard({ idea, onEdit, onDelete, onAttachLicense }) {
   return (
