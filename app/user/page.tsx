@@ -1,5 +1,10 @@
-import UserPage from "@/hooks/user-page"
+import UserHubLayout from "@/components/layout/UserHubLayout"
+import { UserDashboard } from "@/components/idea/UserDashboard"
 
 export default function UserPages() {
-    return <UserPage />
+    return (
+        <UserHubLayout>
+            <UserDashboard />
+        </UserHubLayout>
+    )
 }

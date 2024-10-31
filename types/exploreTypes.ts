@@ -6,4 +6,6 @@ export interface Idea {
   imageUrl: string;
   price: number;
   tags: string[];
+  listedDate?: string;
+  license?: string;
 }
