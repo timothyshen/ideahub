@@ -1,5 +1,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import {
+    DynamicWidget,
+} from "@dynamic-labs/sdk-react-core";
 
 function Header() {
     return (
@@ -15,7 +18,9 @@ function Header() {
                         </ul>
                     </nav>
                 </div>
-                <Button variant="secondary" size="sm">Connect</Button>
+                <DynamicWidget innerButtonComponent={
+                    <Button variant="secondary" size="sm">Connect</Button>
+                } />
             </div>
         </header>
     )

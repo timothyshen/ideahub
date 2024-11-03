@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
-import { custom } from "viem";
+import { custom, zeroAddress } from "viem";
 import { StoryClient, StoryConfig } from "@story-protocol/core-sdk";
-import { useAccount, useWalletClient } from "wagmi"; // Assuming you're using wagmi for wallet connection
+import { useAccount, useWalletClient } from "wagmi";
 
 export const useStoryProtocol = () => {
   const [loading, setLoading] = useState(false);
@@ -17,9 +17,42 @@ export const useStoryProtocol = () => {
       transport: custom(walletClient.transport),
       chainId: "odyssey",
     };
-    const client = StoryClient.newClient(config);
-    return client;
+    return StoryClient.newClient(config);
   }, [walletClient]);
+
+  const createCollection = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!storyClient || !address) {
+        throw new Error('Client not initialized or wallet not connected');
+      }
+
+      // Check if the caller is the owner
+      const ownerAddress = process.env.NEXT_PUBLIC_OWNER_WALLET_KEY;
+      if (address.toLowerCase() !== ownerAddress?.toLowerCase()) {
+        throw new Error('Only owner can create collection');
+      }
+
+      const newCollection = await storyClient.nftClient.createNFTCollection({
+        name: "Ideas Collection",
+        symbol: "IDEAS",
+        isPublicMinting: true,
+        mintOpen: true,
+        mintFeeRecipient: zeroAddress,
+        contractURI: "",
+        txOptions: { waitForTransaction: true },
+      });
+
+      return newCollection;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create collection");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [storyClient, address]);
 
   const registerIPAsset = useCallback(
     async (name: string, description: string, mediaUrl: string) => {
@@ -54,6 +87,7 @@ export const useStoryProtocol = () => {
   );
 
   return {
+    createCollection,
     registerIPAsset,
     loading,
     error,

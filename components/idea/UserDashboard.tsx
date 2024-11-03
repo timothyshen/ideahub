@@ -1,42 +1,33 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus } from 'lucide-react'
 import { IdeaCard } from '@/components/idea/IdeaCard'
 import { AddIdeaDialog } from '@/components/idea/AddIdeaDialog'
 import { AttachLicenseDialog } from '@/components/AttachLicenseDialog'
+import { useStoryProtocol } from '@/hooks/useStoryProtocol';
+import { useCollectionStore } from '@/store/collectionStore';
+import { useAccount } from 'wagmi';
+import { toast } from 'sonner';
+import { useIdeas } from '@/hooks/useIdeas'
 
 export function UserDashboard() {
-    const [ideas, setIdeas] = useState([
-        {
-            id: 1,
-            title: "Decentralized Content Moderation",
-            shortDescription: "Blockchain-based content moderation",
-            longDescription: "A blockchain-based system for fair and transparent content moderation on social media platforms.",
-            tags: ["Blockchain", "Social Media", "Moderation"],
-            price: 299.99,
-            listedDate: "2023-05-15",
-            license: "MIT"
-        },
-        {
-            id: 2,
-            title: "NFT-Powered Collaborative Storytelling",
-            shortDescription: "Create stories with NFTs",
-            longDescription: "A platform where users can create and evolve stories together, with each contribution minted as an NFT.",
-            tags: ["NFT", "Storytelling", "Collaboration"],
-            price: 199.99,
-            listedDate: "2023-06-01"
-        }
-    ])
+    const { ideas, isLoading, createIdea, updateIdea, deleteIdea } = useIdeas()
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isAttachLicenseDialogOpen, setIsAttachLicenseDialogOpen] = useState(false)
     const [editingIdea, setEditingIdea] = useState(null)
     const [currentIdeaId, setCurrentIdeaId] = useState(null)
 
-    const handleAddIdea = (newIdea) => {
-        setIdeas([...ideas, newIdea])
+    const { createCollection, loading } = useStoryProtocol();
+    const { address } = useAccount();
+    const { collectionAddress, isCollectionCreated, setCollectionAddress } = useCollectionStore();
+
+    const isOwner = address?.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_WALLET_KEY?.toLowerCase();
+
+    const handleAddIdea = async (newIdea) => {
+        await createIdea.mutateAsync(newIdea)
     }
 
     const handleEditIdea = (idea) => {
@@ -44,13 +35,12 @@ export function UserDashboard() {
         setIsAddDialogOpen(true)
     }
 
-    const handleUpdateIdea = (updatedIdea) => {
-        setIdeas(ideas.map(idea => idea.id === updatedIdea.id ? updatedIdea : idea))
-        setEditingIdea(null)
+    const handleUpdateIdea = async (updatedIdea) => {
+        await updateIdea.mutateAsync(updatedIdea)
     }
 
-    const handleDeleteIdea = (id) => {
-        setIdeas(ideas.filter(idea => idea.id !== id))
+    const handleDeleteIdea = async (id) => {
+        await deleteIdea.mutateAsync(id)
     }
 
     const handleAttachLicense = (id) => {
@@ -63,6 +53,18 @@ export function UserDashboard() {
             idea.id === currentIdeaId ? { ...idea, license } : idea
         ))
     }
+
+    const handleCreateCollection = async () => {
+        try {
+            const collection = await createCollection();
+            if (collection?.address) {
+                setCollectionAddress(collection.address);
+                toast.success("Collection created successfully!");
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Failed to create collection");
+        }
+    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -135,6 +137,26 @@ export function UserDashboard() {
                 onClose={() => setIsAttachLicenseDialogOpen(false)}
                 onAttach={attachLicense}
             />
+            {isOwner && (
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle>Collection Management</CardTitle>
+                        <CardDescription>
+                            {isCollectionCreated
+                                ? `Collection Address: ${collectionAddress}`
+                                : "Create a collection to start minting NFTs"}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            onClick={handleCreateCollection}
+                            disabled={loading || isCollectionCreated}
+                        >
+                            {loading ? "Creating..." : isCollectionCreated ? "Collection Created" : "Create Collection"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     )
 }

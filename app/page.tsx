@@ -6,7 +6,7 @@ import { HowItWorksSection } from "@/components/HowItWorksSection"
 import { LatestIdeasSection } from "@/components/LatestIdeasSection"
 import { CallToActionSection } from "@/components/CallToActionSection"
 
-export function HomePageComponent() {
+export default function HomePageComponent() {
   return (
     <HomePageLayout>
       <HeroSection />

@@ -1,3 +1,5 @@
+"use client"
+
 import {
     DynamicContextProvider,
     DynamicWidget,
@@ -23,7 +25,7 @@ const config = createConfig({
 
 const queryClient = new QueryClient();
 
-export default function App() {
+export default function Web3Provider({ children }: { children: React.ReactNode }) {
     return (
         <DynamicContextProvider
             settings={{
@@ -36,7 +38,7 @@ export default function App() {
             <WagmiProvider config={config}>
                 <QueryClientProvider client={queryClient}>
                     <DynamicWagmiConnector>
-                        <DynamicWidget />
+                        {children}
                     </DynamicWagmiConnector>
                 </QueryClientProvider>
             </WagmiProvider>
