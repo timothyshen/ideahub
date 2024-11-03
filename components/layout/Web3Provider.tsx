@@ -9,15 +9,15 @@ import {
 } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http } from 'viem';
-import { mainnet } from 'viem/chains';
 
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
+import { odyssey } from '@story-protocol/core-sdk';
 
 const config = createConfig({
-    chains: [mainnet],
+    chains: [odyssey],
     multiInjectedProviderDiscovery: false,
     transports: {
-        [mainnet.id]: http(),
+        [odyssey.id]: http(process.env.RPC_PROVIDER_URL),
     },
 });
 
