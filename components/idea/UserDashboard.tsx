@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -5,15 +7,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus } from 'lucide-react'
 import { IdeaCard } from '@/components/idea/IdeaCard'
 import { AddIdeaDialog } from '@/components/idea/AddIdeaDialog'
-import { AttachLicenseDialog } from '@/components/AttachLicenseDialog'
+import { AttachLicenseDialog } from '@/components/idea/AttachLicenseDialog'
 import { useStoryProtocol } from '@/hooks/useStoryProtocol';
 import { useCollectionStore } from '@/store/collectionStore';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
-import { useIdeas } from '@/hooks/useIdeas'
 
 export function UserDashboard() {
-    const { ideas, isLoading, createIdea, updateIdea, deleteIdea } = useIdeas()
+    const [ideas, setIdeas] = useState([
+        {
+            id: 1,
+            title: "Decentralized Content Moderation",
+            shortDescription: "Blockchain-based content moderation",
+            longDescription: "A blockchain-based system for fair and transparent content moderation on social media platforms.",
+            tags: ["Blockchain", "Social Media", "Moderation"],
+            price: 299.99,
+            listedDate: "2023-05-15",
+            license: "MIT"
+        },
+        {
+            id: 2,
+            title: "NFT-Powered Collaborative Storytelling",
+            shortDescription: "Create stories with NFTs",
+            longDescription: "A platform where users can create and evolve stories together, with each contribution minted as an NFT.",
+            tags: ["NFT", "Storytelling", "Collaboration"],
+            price: 199.99,
+            listedDate: "2023-06-01"
+        }
+    ])
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isAttachLicenseDialogOpen, setIsAttachLicenseDialogOpen] = useState(false)
@@ -26,8 +47,8 @@ export function UserDashboard() {
 
     const isOwner = address?.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_WALLET_KEY?.toLowerCase();
 
-    const handleAddIdea = async (newIdea) => {
-        await createIdea.mutateAsync(newIdea)
+    const handleAddIdea = (newIdea) => {
+        setIdeas([...ideas, newIdea])
     }
 
     const handleEditIdea = (idea) => {
@@ -35,12 +56,13 @@ export function UserDashboard() {
         setIsAddDialogOpen(true)
     }
 
-    const handleUpdateIdea = async (updatedIdea) => {
-        await updateIdea.mutateAsync(updatedIdea)
+    const handleUpdateIdea = (updatedIdea) => {
+        setIdeas(ideas.map(idea => idea.id === updatedIdea.id ? updatedIdea : idea))
+        setEditingIdea(null)
     }
 
-    const handleDeleteIdea = async (id) => {
-        await deleteIdea.mutateAsync(id)
+    const handleDeleteIdea = (id) => {
+        setIdeas(ideas.filter(idea => idea.id !== id))
     }
 
     const handleAttachLicense = (id) => {
@@ -77,9 +99,22 @@ export function UserDashboard() {
                 <TabsContent value="listed">
                     <div className="mb-4 flex justify-between items-center">
                         <h2 className="text-2xl font-semibold">Your Listed Ideas</h2>
-                        <Button onClick={() => setIsAddDialogOpen(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> Add New Idea
-                        </Button>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="secondary"
+                                onClick={handleCreateCollection}
+                                disabled={loading || isCollectionCreated}
+                            >
+                                {loading ? "Creating..." : isCollectionCreated ? "Collection Created" : "Create Collection"}
+                            </Button>
+                            <Button
+                                variant="default"
+                                onClick={() => setIsAddDialogOpen(true)}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add New Idea
+                            </Button>
+                        </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {ideas.map(idea => (

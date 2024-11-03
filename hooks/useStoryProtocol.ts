@@ -26,13 +26,13 @@ export const useStoryProtocol = () => {
       setError(null);
 
       if (!storyClient || !address) {
-        throw new Error('Client not initialized or wallet not connected');
+        throw new Error("Client not initialized or wallet not connected");
       }
 
       // Check if the caller is the owner
       const ownerAddress = process.env.NEXT_PUBLIC_OWNER_WALLET_KEY;
       if (address.toLowerCase() !== ownerAddress?.toLowerCase()) {
-        throw new Error('Only owner can create collection');
+        throw new Error("Only owner can create collection");
       }
 
       const newCollection = await storyClient.nftClient.createNFTCollection({
@@ -47,7 +47,9 @@ export const useStoryProtocol = () => {
 
       return newCollection;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create collection");
+      setError(
+        err instanceof Error ? err.message : "Failed to create collection"
+      );
       throw err;
     } finally {
       setLoading(false);

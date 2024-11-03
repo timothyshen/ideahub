@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Edit, Trash2, FileText } from 'lucide-react'
-import { useStoryProtocol } from '@/hooks/useStoryProtocol';
 
 export interface IdeaCardProps {
     idea: any; // TODO: Add proper type
@@ -12,21 +11,6 @@ export interface IdeaCardProps {
 }
 
 export function IdeaCard({ idea, onEdit, onDelete, onAttachLicense }: IdeaCardProps) {
-    const { registerIPAsset, loading, error } = useStoryProtocol();
-
-    const handleRegisterIP = async () => {
-        try {
-            await registerIPAsset(
-                idea.title,
-                idea.description,
-                idea.mediaUrl // Make sure you have this field in your idea object
-            );
-            // Handle success (e.g., show toast notification)
-        } catch (err) {
-            // Handle error (e.g., show error message)
-        }
-    };
-
     return (
         <Card>
             <CardHeader>
@@ -66,15 +50,6 @@ export function IdeaCard({ idea, onEdit, onDelete, onAttachLicense }: IdeaCardPr
                 <span className="text-sm text-muted-foreground">License Price: ${idea.price}</span>
                 <span className="text-sm text-muted-foreground">Listed on: {idea.listedDate}</span>
             </CardFooter>
-            <div className="card-actions">
-                <button 
-                    onClick={handleRegisterIP}
-                    disabled={loading}
-                    className="btn btn-primary"
-                >
-                    {loading ? 'Registering...' : 'Register IP'}
-                </button>
-            </div>
         </Card>
     )
 }
